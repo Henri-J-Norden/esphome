@@ -10,7 +10,7 @@ namespace rtttl {
 class Rtttl : public Component {
  public:
   void set_output(output::FloatOutput *output) { output_ = output; }
-  void play(std::string rtttl);
+  void play(std::string rtttl, float level);
   void stop() {
     note_duration_ = 0;
     output_->set_level(0.0);
@@ -41,6 +41,7 @@ class Rtttl : public Component {
   uint32_t last_note_;
   uint16_t note_duration_;
 
+  float volume_level_;
   uint32_t output_freq_;
   output::FloatOutput *output_;
 
@@ -51,8 +52,9 @@ template<typename... Ts> class PlayAction : public Action<Ts...> {
  public:
   PlayAction(Rtttl *rtttl) : rtttl_(rtttl) {}
   TEMPLATABLE_VALUE(std::string, value)
+  TEMPLATABLE_VALUE(float, level)
 
-  void play(Ts... x) override { this->rtttl_->play(this->value_.value(x...)); }
+  void play(Ts... x) override { this->rtttl_->play(this->value_.value(x...), this->level_.value(x...)); }
 
  protected:
   Rtttl *rtttl_;

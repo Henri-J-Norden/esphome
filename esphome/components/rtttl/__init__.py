@@ -1,10 +1,12 @@
 import logging
+from enum import auto
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 import esphome.final_validate as fv
 from esphome import automation
 from esphome.components.output import FloatOutput
-from esphome.const import CONF_ID, CONF_OUTPUT, CONF_PLATFORM, CONF_TRIGGER_ID
+from esphome.const import CONF_ID, CONF_OUTPUT, CONF_PLATFORM, CONF_TRIGGER_ID, CONF_LEVEL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +30,7 @@ CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ID): cv.declare_id(Rtttl),
         cv.Required(CONF_OUTPUT): cv.use_id(FloatOutput),
+        cv.Optional(CONF_LEVEL, default=0.5): cv.templatable(cv.zero_to_one_float),
         cv.Optional(CONF_ON_FINISHED_PLAYBACK): automation.validate_automation(
             {
                 cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(FinishedPlaybackTrigger),
@@ -90,6 +93,7 @@ async def to_code(config):
         {
             cv.GenerateID(CONF_ID): cv.use_id(Rtttl),
             cv.Required(CONF_RTTTL): cv.templatable(cv.string),
+            cv.Optional(CONF_LEVEL, default=0.5): cv.templatable(cv.zero_to_one_float),
         },
         key=CONF_RTTTL,
     ),
@@ -97,8 +101,10 @@ async def to_code(config):
 async def rtttl_play_to_code(config, action_id, template_arg, args):
     paren = await cg.get_variable(config[CONF_ID])
     var = cg.new_Pvariable(action_id, template_arg, paren)
-    template_ = await cg.templatable(config[CONF_RTTTL], args, cg.std_string)
-    cg.add(var.set_value(template_))
+    template_rtttl = await cg.templatable(config[CONF_RTTTL], args, cg.std_string)
+    cg.add(var.set_value(template_rtttl))
+    template_level = await cg.templatable(config[CONF_LEVEL], args, cg.float_)
+    cg.add(var.set_level(template_level))
     return var
 
 

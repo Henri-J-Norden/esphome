@@ -17,8 +17,9 @@ static const uint16_t NOTES[] = {0,    262,  277,  294,  311,  330,  349,  370, 
 
 void Rtttl::dump_config() { ESP_LOGCONFIG(TAG, "Rtttl"); }
 
-void Rtttl::play(std::string rtttl) {
+void Rtttl::play(std::string rtttl, float volume_level) {
   rtttl_ = std::move(rtttl);
+  volume_level_ = volume_level;
 
   default_duration_ = 4;
   default_octave_ = 6;
@@ -176,7 +177,7 @@ void Rtttl::loop() {
 
     ESP_LOGVV(TAG, "playing note: %d for %dms", note, note_duration_);
     output_->update_frequency(freq);
-    output_->set_level(0.5);
+    output_->set_level(volume_level_);
   } else {
     ESP_LOGVV(TAG, "waiting: %dms", note_duration_);
     output_->set_level(0.0);
