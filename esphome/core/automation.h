@@ -19,6 +19,13 @@ template<int... S> struct gens<0, S...> { using type = seq<S...>; };  // NOLINT
 \
  public: \
   template<typename V> void set_##name(V name) { this->name##_ = name; }
+#define TEMPLATABLE_DEFAULT_(type, name) \
+ protected: \
+  TemplatableValue<type> name##_{}; \
+\
+ public: \
+  template<typename V> void set_##name(V name) { this->name##_ = name; }
+
 
 #define TEMPLATABLE_VALUE(type, name) TEMPLATABLE_VALUE_(type, name)
 

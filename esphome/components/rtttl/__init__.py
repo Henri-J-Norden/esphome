@@ -81,6 +81,9 @@ async def to_code(config):
     out = await cg.get_variable(config[CONF_OUTPUT])
     cg.add(var.set_output(out))
 
+    level = await cg.templatable(config[CONF_LEVEL], [], cg.std_string)
+    cg.add(var.set_default_volume_level(level))
+
     for conf in config.get(CONF_ON_FINISHED_PLAYBACK, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [], conf)
@@ -93,7 +96,7 @@ async def to_code(config):
         {
             cv.GenerateID(CONF_ID): cv.use_id(Rtttl),
             cv.Required(CONF_RTTTL): cv.templatable(cv.string),
-            cv.Optional(CONF_LEVEL, default=0.5): cv.templatable(cv.zero_to_one_float),
+            cv.Optional(CONF_LEVEL): cv.templatable(cv.zero_to_one_float),
         },
         key=CONF_RTTTL,
     ),
@@ -103,8 +106,9 @@ async def rtttl_play_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg, paren)
     template_rtttl = await cg.templatable(config[CONF_RTTTL], args, cg.std_string)
     cg.add(var.set_value(template_rtttl))
-    template_level = await cg.templatable(config[CONF_LEVEL], args, cg.float_)
-    cg.add(var.set_level(template_level))
+    if CONF_LEVEL in config:
+        template_level = await cg.templatable(config[CONF_LEVEL], args, cg.float_)
+        cg.add(var.set_level(template_level))
     return var
 
 

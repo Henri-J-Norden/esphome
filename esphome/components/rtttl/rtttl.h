@@ -41,6 +41,12 @@ class Rtttl : public Component {
   uint32_t last_note_;
   uint16_t note_duration_;
 
+
+  TemplatableValue<float> default_volume_level_{};
+ public:
+  template<typename V> void set_default_volume_level(V level) { this->default_volume_level_ = level; }
+  float default_volume_level() { return default_volume_level_.value(); }
+ protected:
   float volume_level_;
   uint32_t output_freq_;
   output::FloatOutput *output_;
@@ -54,7 +60,12 @@ template<typename... Ts> class PlayAction : public Action<Ts...> {
   TEMPLATABLE_VALUE(std::string, value)
   TEMPLATABLE_VALUE(float, level)
 
-  void play(Ts... x) override { this->rtttl_->play(this->value_.value(x...), this->level_.value(x...)); }
+  void play(Ts... x) override {
+    this->rtttl_->play(
+        this->value_.value(x...),
+        this->level_.value_or(x..., this->rtttl_->default_volume_level())
+    );
+  }
 
  protected:
   Rtttl *rtttl_;
